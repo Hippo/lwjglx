@@ -164,8 +164,11 @@ public class Keyboard {
 	//private static int eventCount = 0;
 	//private static int currentEventPos = -1;
 	//private static int nextEventPos = 0;
+
+	private static boolean repeatEvents = false;
 	
 	private static int[] keyEvents = new int[queue.getMaxEvents()];
+	private static boolean[] repeatEventStates = new boolean[queue.getMaxEvents()];
 	private static boolean[] keyEventStates = new boolean[queue.getMaxEvents()];
 	private static long[] nanoTimeEvents = new long[queue.getMaxEvents()];
 	private static char[] keyEventChars = new char[256];
@@ -199,12 +202,14 @@ public class Keyboard {
 
 	}
 	
-	public static void addKeyEvent(int key, boolean pressed) {
+	public static void addKeyEvent(int key, boolean pressed, boolean repeat) {
 		//eventCount++;
 		//if (eventCount > maxEvents) eventCount = maxEvents;
+		if (repeat && !repeatEvents) return;
 		
 		keyEvents[queue.getNextPos()] = KeyCodes.toLwjglKey(key);
 		keyEventStates[queue.getNextPos()] = pressed;
+		repeatEventStates[queue.getNextPos()] = repeat;
 		
 		nanoTimeEvents[queue.getNextPos()] = Sys.getNanoTime();
 		
@@ -224,6 +229,10 @@ public class Keyboard {
 	public static void create() throws LWJGLException {
 		
 	}
+
+	public static boolean areRepeatEventsEnabled() {
+		return repeatEvents;
+	}
             
 	public static boolean isKeyDown(int key) {
 		return GLFW.glfwGetKey(Display.getWindow(), KeyCodes.toGlfwKey(key)) == GLFW.GLFW_PRESS;
@@ -234,13 +243,11 @@ public class Keyboard {
 	}
 	
 	public static void enableRepeatEvents(boolean enable) {
-		// TODO
-		System.out.println("TODO: Implement Keyboad.enableRepeatEvents(boolean)");
+		repeatEvents = enable;
 	}
 	
 	public static boolean isRepeatEvent() {
-		// TODO
-		return false;
+		return repeatEventStates[queue.getCurrentPos()];
 	}
 	
 	public static boolean next() {

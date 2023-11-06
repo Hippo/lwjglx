@@ -56,11 +56,16 @@ public class Display {
 	private static boolean latestResized = false;
 	private static int latestWidth = 0;
 	private static int latestHeight = 0;
+
+	private static long lastMonitor = 0;
+	private static int lastX, lastY, lastWidth, lastHeight;
+	private static boolean fullscreen = false;
 	
 	static {
 		Sys.initialize(); // init using dummy sys method
 		
 		long monitor = glfwGetPrimaryMonitor();
+		lastMonitor = monitor;
 		GLFWVidMode vidmode = Objects.requireNonNull(glfwGetVideoMode(monitor), "Failed to get video mode!");
 
 		int monitorWidth = vidmode.width();
@@ -115,10 +120,8 @@ public class Display {
 			@Override
 			public void invoke(long window, int key, int scancode, int action, int mods) {
 				latestEventKey = key;
-				
-				if (action == GLFW_RELEASE || action == GLFW.GLFW_PRESS) {
-					Keyboard.addKeyEvent(key, action == GLFW.GLFW_PRESS);
-				}
+
+				Keyboard.addKeyEvent(key, action != GLFW_RELEASE, action == GLFW_REPEAT);
 			}
 		};
 		
@@ -188,6 +191,13 @@ public class Display {
 				displayFramebufferHeight = height;
 			}
 		};
+
+		Window.scrollCallback = new GLFWScrollCallback() {
+			@Override
+			public void invoke(long window, double xoffset, double yoffset) {
+				Mouse.addWheelEvent((int)yoffset);
+			}
+		};
 		
 		Window.setCallbacks();
 		
@@ -236,11 +246,11 @@ public class Display {
 	}
 	
 	public static void setLocation(int new_x, int new_y) {
-		System.out.println("TODO: Implement Display.setLocation(int, int)");
+		glfwSetWindowPos(Window.handle, new_x, new_y);
 	}
 	
 	public static void setVSyncEnabled(boolean sync) {
-		System.out.println("TODO: Implement Display.setVSyncEnabled(boolean)");// TODO
+		glfwSwapInterval(sync ? 1 : 0);
 	}
 	
 	public static long getWindow() {
@@ -267,7 +277,7 @@ public class Display {
 		glfwPollEvents();
 		Keyboard.poll();
 		Mouse.poll();
-		
+
 		if (latestResized) {
 			latestResized = false;
 			displayResized = true;
@@ -393,12 +403,18 @@ public class Display {
 	}
 	
 	public static void setFullscreen(boolean fullscreen) throws LWJGLException {
-		// TODO
+		if (fullscreen) {
+			lastMonitor = glfwGetWindowMonitor(Window.handle);
+			GLFWVidMode vidmode = Objects.requireNonNull(glfwGetVideoMode(lastMonitor), "Failed to get video mode!");
+			glfwSetWindowMonitor(Window.handle, lastMonitor, 0, 0, vidmode.width(), vidmode.height(), vidmode.refreshRate());
+		} else {
+			glfwSetWindowMonitor(Window.handle, lastMonitor, lastX, lastY, lastWidth, lastHeight, GLFW_DONT_CARE);
+		}
+		Display.fullscreen = fullscreen;
 	}
 	
 	public static boolean isFullscreen() {
-		// TODO
-		return false;
+		return fullscreen;
 	}
 	
 	public static void setParent(java.awt.Canvas parent) throws LWJGLException {
@@ -458,6 +474,7 @@ public class Display {
 		static GLFWWindowPosCallback windowPosCallback;
 		static GLFWWindowRefreshCallback windowRefreshCallback;
 		static GLFWFramebufferSizeCallback framebufferSizeCallback;
+		static GLFWScrollCallback scrollCallback;
 		
 		public static void setCallbacks() {
 			glfwSetKeyCallback(handle, keyCallback);
@@ -470,6 +487,7 @@ public class Display {
 			glfwSetWindowPosCallback(handle, windowPosCallback);
 			glfwSetWindowRefreshCallback(handle, windowRefreshCallback);
 			glfwSetFramebufferSizeCallback(handle, framebufferSizeCallback);
+			glfwSetScrollCallback(handle, scrollCallback);
 		}
 		
 		public static void releaseCallbacks() {

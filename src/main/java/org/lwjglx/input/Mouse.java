@@ -17,7 +17,12 @@ public class Mouse {
 	
 	private static int x = 0;
 	private static int y = 0;
-	
+
+	private static int realX = 0;
+	private static int realY = 0;
+
+	private static int dWheel = 0;
+
 	private static EventQueue queue = new EventQueue(32);
 	
 	private static int[] buttonEvents = new int[queue.getMaxEvents()];
@@ -27,10 +32,14 @@ public class Mouse {
 	private static int[] lastxEvents = new int[queue.getMaxEvents()];
 	private static int[] lastyEvents = new int[queue.getMaxEvents()];
 	private static long[] nanoTimeEvents = new long[queue.getMaxEvents()];
-	
+
+	private static int[] dWheelEvents = new int[queue.getMaxEvents()];
+
 	private static boolean clipPostionToDisplay = true;
 	
 	public static void addMoveEvent(double mouseX, double mouseY) {
+		realX = (int)mouseX;
+		realY = (int)mouseY;
 		latestX = (int)mouseX;
 		latestY = Display.getHeight() - (int)mouseY;
 		
@@ -44,7 +53,7 @@ public class Mouse {
 		buttonEventStates[queue.getNextPos()] = false;
 		
 		nanoTimeEvents[queue.getNextPos()] = Sys.getNanoTime();
-		
+
 		queue.add();
 	}
 	
@@ -59,14 +68,32 @@ public class Mouse {
 		buttonEventStates[queue.getNextPos()] = pressed;
 		
 		nanoTimeEvents[queue.getNextPos()] = Sys.getNanoTime();
-		
+
+		queue.add();
+	}
+
+	public static void addWheelEvent(int dWheel) {
+		lastxEvents[queue.getNextPos()] = xEvents[queue.getNextPos()];
+		lastyEvents[queue.getNextPos()] = yEvents[queue.getNextPos()];
+
+		xEvents[queue.getNextPos()] = latestX;
+		yEvents[queue.getNextPos()] = latestY;
+
+		buttonEvents[queue.getNextPos()] = -1;
+		buttonEventStates[queue.getNextPos()] = false;
+
+		nanoTimeEvents[queue.getNextPos()] = Sys.getNanoTime();
+
+		dWheelEvents[queue.getNextPos()] = dWheel;
+		Mouse.dWheel += dWheel;
+
 		queue.add();
 	}
 	
 	public static void poll() {
 		lastX = x;
 		lastY = y;
-		
+
 		if (!grabbed && clipPostionToDisplay) {
 			if (latestX < 0) latestX = 0;
 			if (latestY < 0) latestY = 0;
@@ -134,7 +161,7 @@ public class Mouse {
 	}
 	
 	public static int getEventDWheel() {
-		return 0; // TODO
+		return dWheelEvents[queue.getCurrentPos()];
 	}
 		
 	public static int getX() {
@@ -154,8 +181,9 @@ public class Mouse {
 	}
 	
 	public static int getDWheel() {
-		// TODO
-		return 0;
+		int ret = dWheel;
+		dWheel = 0;
+		return ret;
 	}
 	
 	public static int getButtonCount() {
@@ -178,6 +206,12 @@ public class Mouse {
 	
 	public static void destroy() {
 		
+	}
+
+	public static boolean isInsideWindow() {
+		int width = Display.getWidth();
+		int height = Display.getHeight();
+		return realX >= 0 && realY >= 0 && realX < width && realY < height;
 	}
 
 }
