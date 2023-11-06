@@ -223,7 +223,6 @@ public class Display {
 		GL.createCapabilities();
 		context = GLFW.glfwGetCurrentContext();
 		
-		glfwSwapInterval(1);
 		glfwShowWindow(Window.handle);
 		
 		displayCreated = true;

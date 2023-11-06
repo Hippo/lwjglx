@@ -2,6 +2,7 @@ package rip.hippo.lwjglx.test;
 
 
 import static org.lwjgl.opengl.GL32.*;
+
 import org.lwjglx.LWJGLException;
 import org.lwjglx.opengl.Display;
 import org.lwjglx.opengl.DisplayMode;
@@ -32,6 +33,9 @@ public final class LwjglxTest {
         } catch (LWJGLException e) {
             throw new RuntimeException(e);
         }
+
+        System.out.println(glGetString(GL_VERSION));
+
 
         float[] vertices = {
            -0.5f, -0.5f, 0.0f,
@@ -64,11 +68,13 @@ public final class LwjglxTest {
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
 
+
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * 4, 0);
         glEnableVertexAttribArray(0);
 
 
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+
 
         while (!Display.isCloseRequested()) {
             glClear(GL_COLOR_BUFFER_BIT);
