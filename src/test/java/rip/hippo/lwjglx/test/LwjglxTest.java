@@ -1,6 +1,7 @@
 package rip.hippo.lwjglx.test;
 
 
+import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL32.*;
 
 import org.lwjglx.LWJGLException;
@@ -27,15 +28,17 @@ public final class LwjglxTest {
 
     public static void main(String[] args) {
         try {
+            Display.setWindowHints(() -> {
+                glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+                glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+                glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+            });
             Display.setDisplayMode(new DisplayMode(800, 600));
             Display.setTitle("Lwjglx Test");
             Display.create();
         } catch (LWJGLException e) {
             throw new RuntimeException(e);
         }
-
-        System.out.println(glGetString(GL_VERSION));
-
 
         float[] vertices = {
            -0.5f, -0.5f, 0.0f,
@@ -72,9 +75,7 @@ public final class LwjglxTest {
         glVertexAttribPointer(0, 3, GL_FLOAT, false, 3 * 4, 0);
         glEnableVertexAttribArray(0);
 
-
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-
 
         while (!Display.isCloseRequested()) {
             glClear(GL_COLOR_BUFFER_BIT);

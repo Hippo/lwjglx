@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "rip.hippo"
-version = "1.1.1"
+version = "1.2.0"
 
 
 val lwjglVersion = "3.3.3"

@@ -60,6 +60,8 @@ public class Display {
 	private static long lastMonitor = 0;
 	private static int lastX, lastY, lastWidth, lastHeight;
 	private static boolean fullscreen = false;
+
+	private static Runnable windowHints = () -> {};
 	
 	static {
 		Sys.initialize(); // init using dummy sys method
@@ -104,12 +106,7 @@ public class Display {
 		int monitorRefreshRate = vidmode.refreshRate();
 		
 		desktopDisplayMode = new DisplayMode(monitorWidth, monitorHeight, monitorBitPerPixel, monitorRefreshRate);
-
-		glfwDefaultWindowHints();
-		glfwWindowHint(GLFW_RESIZABLE, displayResizable ? GL_TRUE : GL_FALSE);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		windowHints.run();
 		Window.handle = glfwCreateWindow(mode.getWidth(), mode.getHeight(), windowTitle, NULL, NULL);
 
 		if ( Window.handle == 0L )
@@ -324,6 +321,10 @@ public class Display {
 		}
 
 		return displayModes;
+	}
+
+	public static void setWindowHints(Runnable hints) {
+		windowHints = hints;
 	}
 	
 	public static DisplayMode getDesktopDisplayMode() {
